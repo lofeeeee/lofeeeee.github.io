@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lofee · Star System</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='13'%20fill='%23050506'/%3E%3Crect%20x='2.5'%20y='2.5'%20width='59'%20height='59'%20rx='11'%20fill='none'%20stroke='%23444'%20stroke-width='1.5'/%3E%3Ctext%20x='32'%20y='34'%20font-size='40'%20text-anchor='middle'%20dominant-baseline='central'%20fill='%23f2f2f4'%20font-family='Segoe%20UI%20Symbol,Apple%20Symbols,serif'%3E%E2%99%8D%3C/text%3E%3C/svg%3E">
+<meta name="description" content="Marco Antonio (Lofee) - IT generalist and support specialist in Jakarta. Keeps systems, servers and people running; goes fullstack with Go, Kotlin, TypeScript and Postgres when the job calls for it.">
+<meta name="theme-color" content="#050506">
+<link rel="canonical" href="https://lofeeeee.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://lofeeeee.github.io/">
+<meta property="og:title" content="Lofee · Star System">
+<meta property="og:description" content="IT generalist, support at heart. Four galaxies hold the stack - boot the system and look around.">
+<meta property="og:image" content="https://lofeeeee.github.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Lofee's portfolio: four glowing galaxies orbiting in a dark star system">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Lofee · Star System">
+<meta name="twitter:description" content="IT generalist, support at heart. Four galaxies hold the stack.">
+<meta name="twitter:image" content="https://lofeeeee.github.io/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="stage" id="stage" data-phase="">
+
+  <!-- ============ LANDING ============ -->
+  <div class="screen s-landing" style="display:flex; align-items:center; justify-content:center;">
+    <div class="bootlog" id="bootLog"></div>
+    <div class="ringwrap" id="ringWrap">
+      <svg class="gpu-anim" viewBox="0 0 200 200" style="position:absolute; inset:0; width:100%; height:100%; animation:spin 26s linear infinite;">
+        <circle cx="100" cy="100" r="94" fill="none" stroke="#3a3a3e" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0.1 6.5"></circle>
+      </svg>
+      <svg class="loaderfast gpu-anim" viewBox="0 0 200 200" style="position:absolute; inset:0; margin:auto; width:86.4%; height:86.4%; animation:spinRev 12s linear infinite;">
+        <circle cx="100" cy="100" r="80" fill="none" stroke="#cfcfd4" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.1 10.4"></circle>
+      </svg>
+      <svg class="loaderfast gpu-anim" viewBox="0 0 200 200" style="position:absolute; inset:0; margin:auto; width:68.2%; height:68.2%; animation:spin 8s linear infinite;">
+        <circle cx="100" cy="100" r="62" fill="none" stroke="#6a6a70" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="0.1 8.1"></circle>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ============ PROFILE ============ -->
+  <div class="screen s-profile" id="screenProfile">
+    <div class="bgtint" id="bgTint"></div>
+
+    <div id="starsLayer"></div>
+    <div id="shootersLayer"></div>
+    <div id="cometLayer"></div>
+
+    <!-- identity -->
+    <div class="identity rise d1" style="position:absolute; top:var(--id-top); left:clamp(18px, 4vw, 56px); z-index:5;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+        <div style="width:34px; height:1px; background:linear-gradient(90deg, #8a8a92, rgba(138,138,146,0));"></div>
+        <div class="kicker">Generalist // Portfolio</div>
+      </div>
+      <h1 class="nameheading" id="nameHeading"><span id="nameText"></span><span class="cursor">_</span></h1>
+      <p class="intro" id="introText">IT generalist, support at heart. I keep systems, servers, and people running, and go fullstack when the job calls for it. Four galaxies hold my stack.</p>
+    </div>
+
+    <!-- links -->
+    <div class="links rise d4" style="position:absolute; top:var(--link-top); left:var(--link-left); z-index:6;">
+      <a href="#" id="openProjectsLink">PROJECTS&nbsp;▤</a>
+      <a href="https://github.com/lofeeeee/" target="_blank">GITHUB&nbsp;↗</a>
+      <a href="https://www.linkedin.com/in/marco-antonio-n/" target="_blank">LINKEDIN&nbsp;↗</a>
+    </div>
+
+    <!-- constellation -->
+    <div class="rise d2" id="constellationOuter" style="position:absolute; left:50%; top:var(--orb-top); width:0; height:0; z-index:4; transition:top .4s ease;">
+      <div id="constellationScale" style="transition:transform .35s ease;">
+        <div class="constellation-inner">
+          <div class="orb-opacity-wrap" id="orbOpacityWrap">
+
+            <svg viewBox="0 0 600 600" width="600" height="600" id="idleRings" style="position:absolute; left:-300px; top:-300px; transition:opacity .4s ease; pointer-events:none;">
+              <circle cx="300" cy="300" r="222" fill="none" stroke="#3c3f4c" stroke-width="1" stroke-dasharray="3 8"></circle>
+              <circle cx="300" cy="300" r="8" fill="none" stroke="#4a4d5a" stroke-width="1"></circle>
+            </svg>
+            <svg viewBox="0 0 600 600" width="600" height="600" id="selRings" style="position:absolute; left:-300px; top:-300px; opacity:0; transition:opacity .4s ease; pointer-events:none;">
+              <circle cx="300" cy="300" r="136" fill="none" stroke="#3c3f4c" stroke-width="1" stroke-dasharray="2 7"></circle>
+              <circle cx="300" cy="300" r="202" fill="none" stroke="#373a47" stroke-width="1" stroke-dasharray="2 7"></circle>
+              <circle cx="300" cy="300" r="262" fill="none" stroke="#2e3040" stroke-width="1" stroke-dasharray="3 9"></circle>
+            </svg>
+
+            <svg viewBox="0 0 700 700" width="700" height="700" style="position:absolute; left:-350px; top:-350px; pointer-events:none;">
+              <circle cx="350" cy="350" r="312" fill="none" stroke="#262733" stroke-width="1" stroke-dasharray="1 11"></circle>
+            </svg>
+            <div id="protostarsLayer"></div>
+
+            <div id="techPlanetsLayer"></div>
+            <div id="crystalsLayer"></div>
+
+            <div class="satorbit gpu-anim" id="satOrbit">
+              <div class="satwrap">
+                <div class="bubble">
+                  <div class="bt">B.Sc. Information Systems</div>
+                  <div class="bd">Bunda Mulia University - Jakarta</div>
+                  <div class="arrow"></div>
+                </div>
+                <svg viewBox="0 0 40 24" width="40" height="24">
+                  <rect x="15" y="8" width="10" height="8" rx="2" fill="#1a1b22" stroke="#9a9aa2" stroke-width="1"></rect>
+                  <rect x="2" y="10" width="10" height="4" rx="1" fill="rgba(25,195,230,.25)" stroke="#6a8a94" stroke-width=".8"></rect>
+                  <rect x="28" y="10" width="10" height="4" rx="1" fill="rgba(25,195,230,.25)" stroke="#6a8a94" stroke-width=".8"></rect>
+                  <line x1="12" y1="12" x2="15" y2="12" stroke="#9a9aa2" stroke-width="1"></line>
+                  <line x1="25" y1="12" x2="28" y2="12" stroke="#9a9aa2" stroke-width="1"></line>
+                  <circle cx="20" cy="6" r="1.5" fill="#4ade80"></circle>
+                  <line x1="20" y1="8" x2="20" y2="7" stroke="#9a9aa2" stroke-width=".8"></line>
+                </svg>
+                <div class="satlabel">EDU-SAT-01</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="moonicon" id="moonIcon" title="full moon tonight" hidden>
+      <div style="position:absolute; left:26%; top:30%; width:8px; height:8px; border-radius:50%; background:rgba(70,70,84,.25);"></div>
+      <div style="position:absolute; left:56%; top:52%; width:11px; height:11px; border-radius:50%; background:rgba(70,70,84,.2);"></div>
+      <div style="position:absolute; left:38%; top:66%; width:6px; height:6px; border-radius:50%; background:rgba(70,70,84,.22);"></div>
+    </div>
+
+    <div class="achtoast" id="achToast" hidden>
+      <div class="ico"></div>
+      <div>
+        <div class="title" id="achTitle"></div>
+        <div class="desc" id="achDesc"></div>
+      </div>
+    </div>
+
+    <!-- mission log -->
+    <div class="rise d3" style="position:absolute; left:clamp(18px, 4vw, 56px); bottom:clamp(46px, 9vh, 72px); z-index:5;">
+      <div class="missions-label">Experience</div>
+      <div class="missions-row" id="missionsRow">
+        <div class="missions-line"></div>
+      </div>
+    </div>
+
+    <!-- projects terminal overlay -->
+    <div class="projects-overlay" id="projectsOverlay" hidden>
+      <div class="projects-window" id="projectsWindow">
+        <div class="projects-titlebar">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          <div class="path">lofee@prodnode-01:&nbsp;~/projects</div>
+          <button class="closebtn" id="closeProjectsBtn">✕</button>
+        </div>
+        <div class="termbody" id="termBody">
+          <div class="term-cmdline" id="termCmdLine">
+            <span class="term-user">lofee@prodnode-01</span><span class="term-sep">:~$</span>&nbsp;<span id="typedCmd"></span><span class="term-cursor" id="typingCursor"></span>
+          </div>
+          <div class="proj-list" id="projList" hidden></div>
+          <div id="termInteractive" hidden>
+            <div id="termHistory"></div>
+            <div class="term-liveline">
+              <span class="term-user">lofee@prodnode-01</span><span class="term-sep">:~$</span>&nbsp;
+              <input id="termInput" type="text" inputmode="text" enterkeyhint="go" spellcheck="false" autocomplete="off">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="caption rise d3" id="captionText" style="position:absolute;"></div>
+    <div class="systemtag">lofee@prodnode-01&nbsp;·&nbsp;Linux&nbsp;6.9.4-2-lts&nbsp;x86_64&nbsp;·&nbsp;up&nbsp;99.98%</div>
+  </div>
+
+  <!-- kernel panic easter egg -->
+  <div class="kernelpanic" id="kernelPanic" hidden>
+    <div class="red">Kernel panic - not syncing: Fatal exception in interrupt</div>
+    <div>CPU: 3 PID: 1 Comm: lofee Not tainted 6.9.4-2-lts #1</div>
+    <div>Hardware name: LOFEE STARSYSTEM/PRODNODE-01, BIOS F.42 11/02/2025</div>
+    <div>Call Trace:</div>
+    <div>&nbsp;&lt;TASK&gt;</div>
+    <div>&nbsp;dump_stack_lvl+0x48/0x60</div>
+    <div>&nbsp;panic+0x33e/0x380</div>
+    <div>&nbsp;identity_overload+0x5c/0x90 [ego]</div>
+    <div>&nbsp;do_exit+0x9f3/0xa20</div>
+    <div>&nbsp;&lt;/TASK&gt;</div>
+    <div class="red">---[ end Kernel panic - not syncing: Fatal exception in interrupt ]---</div>
+    <div style="margin-top:14px; color:#8a8a92;">rebooting system...</div>
+  </div>
+
+  <!-- idle screensaver -->
+  <div class="saver" id="saver" hidden>
+    <div style="position:absolute; left:50%; top:50%;" id="warpLayer"></div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
