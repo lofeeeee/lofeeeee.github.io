@@ -346,6 +346,7 @@
     saverOn: false,
     panicOn: false,
     projOpen: false,
+    idleMode: false,
   };
   const timers = {};
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -530,28 +531,15 @@
 
   function svgNS(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
 
-  function buildCrystalNode(cat, r, anim, scale, isNova) {
-    const outer = document.createElement('div');
-    outer.className = 'gpu-anim';
-    outer.style.position = 'absolute';
-    outer.style.setProperty('--r', r);
-    outer.style.animation = anim;
-
+  function buildCrystalBtn(cat) {
     const btn = document.createElement('div');
     btn.className = 'crystalbtn';
-    btn.style.cssText = 'position:absolute; transform:translate(-50%,-54%) scale(' + scale + '); transition:transform .6s cubic-bezier(.2,.8,.2,1), filter .3s ease; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px;';
+    btn.style.cssText = 'position:absolute; transform:translate(-50%,-54%) scale(1); transition:transform .6s cubic-bezier(.2,.8,.2,1), filter .3s ease; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px;';
     btn.addEventListener('click', (e) => { e.stopPropagation(); pick(cat.id); });
     btn.addEventListener('dblclick', (e) => { e.stopPropagation(); boom(cat.id); });
 
     const iconWrap = document.createElement('div');
     iconWrap.style.cssText = 'position:relative; width:90px; height:90px; display:flex; align-items:center; justify-content:center;';
-    iconWrap.style.animation = isNova ? 'novaBurst 1.4s cubic-bezier(.3,.7,.4,1) both' : 'none';
-
-    if (isNova) {
-      const ring = document.createElement('div');
-      ring.style.cssText = 'position:absolute; left:50%; top:50%; width:26px; height:26px; margin:-13px; border-radius:50%; border:2px solid ' + cat.stroke + '; animation:novaRing .9s ease-out forwards;';
-      iconWrap.appendChild(ring);
-    }
 
     const glow = document.createElement('div');
     glow.className = 'gpu-anim';
@@ -579,12 +567,18 @@
     label.textContent = cat.label;
 
     btn.append(iconWrap, label);
-    outer.appendChild(btn);
-    return outer;
+    return { btn, iconWrap };
   }
 
-  function buildTechPlanetsNode(selCat, ringAnim, counterAnim) {
+  function buildTechPlanetsNode(selCat) {
     const wrap = document.createElement('div');
+    wrap.className = 'tech-cluster gpu-anim';
+    wrap.dataset.catId = selCat.id;
+
+    const spinWrap = document.createElement('div');
+    spinWrap.className = 'gpu-anim';
+    spinWrap.style.cssText = 'position:absolute; inset:0; animation:spin 70s linear infinite;';
+
     const n = selCat.chips.length;
     const pts = [];
     const items = selCat.chips.map(([name, lv, url], i) => {
@@ -602,28 +596,24 @@
     });
     const constelD = pts.map(([x, y], i) => (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1)).join(' ') + ' Z';
 
-    wrap.className = 'gpu-anim';
-    wrap.style.position = 'absolute';
-    wrap.style.animation = ringAnim;
-
     const lines = svgNS('svg');
     lines.setAttribute('viewBox', '-300 -300 600 600'); lines.setAttribute('width', '600'); lines.setAttribute('height', '600');
     lines.style.cssText = 'position:absolute; left:-300px; top:-300px; pointer-events:none;';
     const path = svgNS('path'); path.setAttribute('d', constelD); path.setAttribute('fill', 'none'); path.setAttribute('stroke', selCat.border); path.setAttribute('stroke-width', '1'); path.setAttribute('stroke-dasharray', '5 7'); path.setAttribute('opacity', '.5');
     lines.appendChild(path);
-    wrap.appendChild(lines);
+    spinWrap.appendChild(lines);
 
     items.forEach((tp) => {
       const posWrap = document.createElement('div');
+      posWrap.className = 'gpu-anim';
       posWrap.style.cssText = 'position:absolute; transform:rotate(' + tp.ang + ') translateX(' + tp.r + ');';
       const counter = document.createElement('div');
       counter.className = 'gpu-anim';
-      counter.style.animation = counterAnim;
+      counter.style.animation = 'spinRev 70s linear infinite';
       const unrot = document.createElement('div');
       unrot.style.transform = 'rotate(' + tp.negAng + ')';
       const link = document.createElement('a');
       link.className = 'planetlink';
-      // href kept so middle-click / ctrl-click still reach the docs
       link.href = tp.url; link.target = '_blank'; link.rel = 'noopener';
       link.title = 'which projects use ' + tp.name + '?';
       link.style.cssText = 'display:block; cursor:pointer; text-decoration:none;';
@@ -642,59 +632,99 @@
       unrot.appendChild(link);
       counter.appendChild(unrot);
       posWrap.appendChild(counter);
-      wrap.appendChild(posWrap);
+      spinWrap.appendChild(posWrap);
     });
 
+    wrap.appendChild(spinWrap);
     return wrap;
   }
 
-  function renderConstellation() {
-    const sel = state.selected;
-    const selCat = CATS.find((c) => c.id === sel) || null;
-    const others = CATS.filter((c) => c.id !== sel);
-    const sfx = (state.gen % 2 === 1) ? 'b' : '';
-    const o1 = 'orbit1' + sfx;
+  const techClusters = {};
 
+  function initTechClusters() {
+    techPlanetsLayer.innerHTML = '';
+    CATS.forEach((cat) => {
+      const node = buildTechPlanetsNode(cat);
+      techClusters[cat.id] = node;
+      techPlanetsLayer.appendChild(node);
+    });
+  }
+
+  let crystalNodes = null;
+
+  function initConstellation() {
     crystalsLayer.innerHTML = '';
+    const orbit = document.createElement('div');
+    orbit.className = 'gpu-anim';
+    orbit.style.cssText = 'position:absolute; left:0; top:0; animation:spin 26s linear infinite;';
+
+    const arms = [];
+    const btns = [];
+    const iconWraps = [];
+
     CATS.forEach((cat, i) => {
-      const isSel = cat.id === sel;
-      let r = '222px', anim = o1 + ' 26s linear infinite -' + (i * 6.5).toFixed(1) + 's';
-      if (sel && isSel) { r = '0px'; anim = 'none'; }
-      else if (sel) {
-        const j = others.indexOf(cat);
-        r = '262px';
-        anim = o1 + ' 34s linear infinite -' + ((j * 34) / 3).toFixed(1) + 's';
-      }
-      const scale = isSel ? 1.55 : 1;
-      const isNova = state.novaId === cat.id;
-      crystalsLayer.appendChild(buildCrystalNode(cat, r, anim, scale, isNova));
+      const ang = i * 90;
+      const arm = document.createElement('div');
+      arm.className = 'gpu-anim';
+      arm.style.cssText = 'position:absolute; left:0; top:0; transform:rotate(' + ang + 'deg) translateX(222px); transition:transform .6s cubic-bezier(.2,.8,.2,1);';
+
+      const unrot = document.createElement('div');
+      unrot.className = 'gpu-anim';
+      unrot.style.cssText = 'position:absolute; left:0; top:0; transform:rotate(' + (-ang) + 'deg);';
+
+      const counterSpin = document.createElement('div');
+      counterSpin.className = 'gpu-anim';
+      counterSpin.style.cssText = 'position:absolute; left:0; top:0; animation:spinRev 26s linear infinite;';
+
+      const { btn, iconWrap } = buildCrystalBtn(cat);
+
+      counterSpin.appendChild(btn);
+      unrot.appendChild(counterSpin);
+      arm.appendChild(unrot);
+      orbit.appendChild(arm);
+
+      arms.push(arm);
+      btns.push(btn);
+      iconWraps.push(iconWrap);
     });
 
-    techPlanetsLayer.innerHTML = '';
-    if (selCat) {
-      const ringAnim = 'spin' + (sfx ? 'b' : '') + ' 70s linear infinite';
-      const counterAnim = 'spinRev' + (sfx ? 'b' : '') + ' 70s linear infinite';
-      techPlanetsLayer.appendChild(buildTechPlanetsNode(selCat, ringAnim, counterAnim));
-    }
+    crystalsLayer.appendChild(orbit);
+    crystalNodes = { orbit, arms, btns, iconWraps };
+  }
+
+  function renderConstellation() {
+    if (!crystalNodes) initConstellation();
+    if (!Object.keys(techClusters).length) initTechClusters();
+
+    const sel = state.selected;
+    const selCat = CATS.find((c) => c.id === sel) || null;
+
+    CATS.forEach((cat, i) => {
+      const isSel = cat.id === sel;
+      const r = (sel && isSel) ? 0 : (sel ? 262 : 222);
+      const scale = isSel ? 1.55 : 1;
+      const ang = i * 90;
+      crystalNodes.arms[i].style.transform = 'rotate(' + ang + 'deg) translateX(' + r + 'px)';
+      crystalNodes.btns[i].style.transform = 'translate(-50%,-54%) scale(' + scale + ')';
+
+      const cluster = techClusters[cat.id];
+      if (cluster) {
+        if (isSel) cluster.classList.add('active');
+        else cluster.classList.remove('active');
+      }
+
+      const tint = document.getElementById('bgTint-' + cat.id);
+      if (tint) tint.style.opacity = isSel ? '1' : '0';
+    });
 
     idleRings.style.opacity = sel ? 0 : 1;
     selRings.style.opacity = sel ? 1 : 0;
-    bgTint.style.opacity = selCat ? 1 : 0;
-    if (selCat) bgTint.style.background = 'radial-gradient(circle at 50% 52%, ' + selCat.bgTint + ' 0%, rgba(5,5,6,0) 58%)';
     captionText.textContent = selCat ? selCat.full : '';
-    orbOpacityWrap.style.opacity = state.fading ? 0 : 1;
   }
 
   function swapTo(sel) {
-    if (state.fading) return;
-    state.fading = true;
+    state.selected = sel;
     renderConstellation();
-    setTimeout(() => {
-      state.selected = sel;
-      state.fading = false;
-      state.gen = (state.gen + 1) % 2;
-      renderConstellation();
-    }, 300);
   }
 
   function pick(id) {
@@ -704,16 +734,27 @@
 
   function deselect() {
     if (state.projOpen) return;
-    if (state.selected === null || state.fading) return;
+    if (state.selected === null) return;
     swapTo(null);
   }
 
   function boom(id) {
-    if (state.novaId) return;
+    if (state.novaId || !crystalNodes) return;
+    const idx = CATS.findIndex((c) => c.id === id);
+    if (idx === -1) return;
     state.novaId = id;
-    renderConstellation();
+    const iconWrap = crystalNodes.iconWraps[idx];
+    const cat = CATS[idx];
+    const ring = document.createElement('div');
+    ring.style.cssText = 'position:absolute; left:50%; top:50%; width:26px; height:26px; margin:-13px; border-radius:50%; border:2px solid ' + cat.stroke + '; animation:novaRing .9s ease-out forwards;';
+    iconWrap.appendChild(ring);
+    iconWrap.style.animation = 'novaBurst 1.4s cubic-bezier(.3,.7,.4,1) both';
     clearTimeout(timers.nova);
-    timers.nova = setTimeout(() => { state.novaId = null; renderConstellation(); }, 1500);
+    timers.nova = setTimeout(() => {
+      state.novaId = null;
+      iconWrap.style.animation = 'none';
+      ring.remove();
+    }, 1500);
   }
 
   // ---------------------------------------------------------------------
@@ -860,8 +901,35 @@
     achTitleEl.textContent = title;
     achDescEl.textContent = desc;
     achToast.hidden = false;
+    if (window.anime) {
+      anime.remove(achToast);
+      anime({
+        targets: achToast,
+        translateY: ['-24px', '0px'],
+        translateX: ['-50%', '-50%'],
+        opacity: [0, 1],
+        scale: [0.9, 1],
+        duration: 480,
+        easing: 'easeOutElastic(1, .75)',
+      });
+    }
     clearTimeout(timers.ach);
-    timers.ach = setTimeout(() => { achToast.hidden = true; }, 5200);
+    timers.ach = setTimeout(() => {
+      if (window.anime) {
+        anime({
+          targets: achToast,
+          translateY: '-16px',
+          translateX: '-50%',
+          opacity: 0,
+          scale: 0.95,
+          duration: 350,
+          easing: 'easeInQuad',
+          complete: () => { achToast.hidden = true; }
+        });
+      } else {
+        achToast.hidden = true;
+      }
+    }, 5200);
   }
 
   // ---------------------------------------------------------------------
@@ -923,6 +991,11 @@
     clearTimeout(timers.termShow);
     state.projOpen = true;
     projectsOverlay.hidden = false;
+    if (window.anime) {
+      anime.remove([projectsOverlay, projectsWindow]);
+      anime({ targets: projectsOverlay, opacity: [0, 1], duration: 250, easing: 'easeOutQuad' });
+      anime({ targets: projectsWindow, scale: [0.94, 1], translateY: [14, 0], opacity: [0, 1], duration: 320, easing: 'easeOutCubic' });
+    }
     projList.hidden = true;
     termInteractive.hidden = true;
     typingCursor.hidden = false;
@@ -941,9 +1014,22 @@
             typingCursor.hidden = true;
             show();
             projList.hidden = false;
+            if (window.anime) {
+              const items = projList.querySelectorAll('.proj-item');
+              if (items.length) {
+                anime({
+                  targets: items,
+                  opacity: [0, 1],
+                  translateX: [-8, 0],
+                  delay: anime.stagger(40),
+                  duration: 350,
+                  easing: 'easeOutCubic'
+                });
+              }
+            }
             termInteractive.hidden = false;
             termInput.focus({ preventScroll: true });
-            termBody.scrollTop = 0;
+            termBody.scrollTop = termBody.scrollHeight;
           }, 320);
         }
       }, 55);
@@ -971,7 +1057,24 @@
     clearTimeout(timers.termStart);
     clearTimeout(timers.termShow);
     state.projOpen = false;
-    projectsOverlay.hidden = true;
+    if (window.anime) {
+      anime({
+        targets: projectsWindow,
+        scale: 0.95,
+        opacity: 0,
+        duration: 200,
+        easing: 'easeInQuad'
+      });
+      anime({
+        targets: projectsOverlay,
+        opacity: 0,
+        duration: 220,
+        easing: 'easeInQuad',
+        complete: () => { projectsOverlay.hidden = true; }
+      });
+    } else {
+      projectsOverlay.hidden = true;
+    }
   }
 
   // survives `clear`, like bash
@@ -1087,13 +1190,8 @@
     ));
   }
 
-  function handleTermKey(e) {
-    if (e.key === 'ArrowUp') { e.preventDefault(); walkHistory(-1); return; }
-    if (e.key === 'ArrowDown') { e.preventDefault(); walkHistory(1); return; }
-    if (e.key === 'Tab') { e.preventDefault(); completeTab(); return; }
-    if (e.key !== 'Enter') return;
-    const raw = termInput.value || '';
-    const cmd = raw.trim();
+  function runTermCommand(raw) {
+    const cmd = (raw || '').trim();
     if (cmd === '') return;
     cmdLog.push(cmd);
     cmdLogIdx = cmdLog.length;
@@ -1129,7 +1227,7 @@
       typedCmdEl.textContent = TERM_CMD;
       projList.hidden = false;
       renderProjectsList();
-      termBody.scrollTop = 0;
+      termBody.scrollTop = termBody.scrollHeight;
       return;
     }
     if (cmd === 'pwd') return done('/home/lofee/projects');
@@ -1169,6 +1267,14 @@
     return done('bash: ' + bin + ': command not found', '#f87171');
   }
 
+  function handleTermKey(e) {
+    if (e.key === 'ArrowUp') { e.preventDefault(); walkHistory(-1); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); walkHistory(1); return; }
+    if (e.key === 'Tab') { e.preventDefault(); completeTab(); return; }
+    if (e.key !== 'Enter') return;
+    runTermCommand(termInput.value || '');
+  }
+
   // ---------------------------------------------------------------------
   // Kernel panic / name click
   // ---------------------------------------------------------------------
@@ -1195,11 +1301,71 @@
   }
 
   // ---------------------------------------------------------------------
-  // Idle screensaver
+  // Idle ambient mode & screensaver
   // ---------------------------------------------------------------------
+  function idleFadeTargets() {
+    return [document.querySelector('.identity'), document.querySelector('.links'), document.querySelector('.missions-row').parentElement, captionText];
+  }
+
+  function enterIdle() {
+    if (state.idleMode || stage.dataset.phase !== 'profile' || reduceMotion.matches) return;
+    state.idleMode = true;
+    if (window.anime) {
+      // stop any in-flight leave animation so the two can't race
+      anime.remove(idleFadeTargets());
+      anime.remove(constellationOuter);
+      anime({
+        targets: idleFadeTargets(),
+        opacity: 0.28,
+        duration: 1200,
+        easing: 'easeInOutQuad'
+      });
+      anime({
+        targets: constellationOuter,
+        scale: 1.06,
+        duration: 1600,
+        easing: 'easeInOutSine'
+      });
+      if (crystalNodes && crystalNodes.arms) {
+        anime({
+          targets: crystalNodes.arms,
+          duration: 1800,
+          delay: anime.stagger(120),
+          easing: 'easeInOutQuad'
+        });
+      }
+    }
+  }
+
+  function leaveIdle() {
+    if (!state.idleMode) return;
+    state.idleMode = false;
+    if (window.anime) {
+      // the enter animation may have stalled while the tab was hidden (rAF paused);
+      // kill it or it resumes and finishes after this one, leaving things dimmed
+      anime.remove(idleFadeTargets());
+      anime.remove(constellationOuter);
+      anime({
+        targets: idleFadeTargets(),
+        opacity: 1,
+        duration: 450,
+        easing: 'easeOutQuad'
+      });
+      anime({
+        targets: constellationOuter,
+        scale: 1,
+        duration: 500,
+        easing: 'easeOutBack'
+      });
+    }
+  }
+
   function resetIdle() {
     clearTimeout(timers.idle);
+    clearTimeout(timers.ambientIdle);
+    leaveIdle();
     if (state.saverOn) { state.saverOn = false; saver.hidden = true; }
+    timers.ambientIdle = setTimeout(enterIdle, 14000);
     timers.idle = setTimeout(() => {
       if (stage.dataset.phase === 'profile' && !state.panicOn && !reduceMotion.matches) {
         state.saverOn = true;
@@ -1209,6 +1375,7 @@
   }
 
   function wake() {
+    leaveIdle();
     if (state.saverOn) { state.saverOn = false; saver.hidden = true; }
   }
 
@@ -1281,6 +1448,10 @@
   timers.devtools = setInterval(checkDevtools, 1600);
   ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel'].forEach((ev) => window.addEventListener(ev, resetIdle, { passive: true }));
   window.addEventListener('resize', updateResponsive);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) enterIdle();
+    else leaveIdle();
+  });
 
   // initial render
   renderStars();

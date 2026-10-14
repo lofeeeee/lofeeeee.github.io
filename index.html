@@ -47,7 +47,11 @@
 
   <!-- ============ PROFILE ============ -->
   <div class="screen s-profile" id="screenProfile">
-    <div class="bgtint" id="bgTint"></div>
+    <div class="bgtint" id="bgTint" style="opacity:0; transition:opacity .6s ease;"></div>
+    <div class="bgtint" id="bgTint-fe" style="opacity:0; transition:opacity .6s ease; background:radial-gradient(circle at 50% 52%, rgba(25,195,230,.13) 0%, rgba(5,5,6,0) 58%);"></div>
+    <div class="bgtint" id="bgTint-be" style="opacity:0; transition:opacity .6s ease; background:radial-gradient(circle at 50% 52%, rgba(240,50,155,.12) 0%, rgba(5,5,6,0) 58%);"></div>
+    <div class="bgtint" id="bgTint-sp" style="opacity:0; transition:opacity .6s ease; background:radial-gradient(circle at 50% 52%, rgba(255,210,30,.11) 0%, rgba(5,5,6,0) 58%);"></div>
+    <div class="bgtint" id="bgTint-db" style="opacity:0; transition:opacity .6s ease; background:radial-gradient(circle at 50% 52%, rgba(215,215,228,.10) 0%, rgba(5,5,6,0) 58%);"></div>
 
     <div id="starsLayer"></div>
     <div id="shootersLayer"></div>
@@ -192,6 +196,7 @@
 
 </div>
 
+<script src="anime.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
